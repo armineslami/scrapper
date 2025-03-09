@@ -19,3 +19,25 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  .search-form {
+    @apply space-y-8 flex flex-col items-center w-full sm:w-1/2
+  }
+
+  .search-form-input-container {
+    @apply flex flex-row items-center gap-5 w-full border border-gray-700 rounded-lg p-2
+  }
+
+  .search-form-input {
+    @apply w-full h-8 bg-transparent focus:outline-none focus:ring-0
+  }
+
+  .input {
+    @apply p-2 rounded-lg w-full  border border-gray-700
+  }
+
+  .button {
+    @apply px-4 py-1.5 rounded-lg bg-white text-sm font-semibold text-gray-700 dark:text-gray-700 uppercase border border-gray-700 dark:border-gray-700
+  }
+}
