@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import Car from "@/interface/Car";
-import puppeteer from "puppeteer";
+import puppeteer, { ProtocolError } from "puppeteer";
 
 class Scrapper {
   page: cheerio.CheerioAPI | undefined;
@@ -12,10 +12,17 @@ class Scrapper {
   async scrapeDivar(url: string, scrollTimes: number = 5): Promise<Car[]> {
     const browser = await puppeteer.launch({ headless: false }); // Set to true for no UI
     const page = await browser.newPage();
-
-    await page.goto(url, { waitUntil: "networkidle2" });
-
     const extractedData: Car[] = [];
+
+    try {
+      await page.goto(url, { waitUntil: "networkidle2" });
+    } catch (error) {
+      console.log(error);
+      await browser.close();
+      if (error instanceof ProtocolError) {
+        throw new ProtocolError();
+      }
+    }
 
     // Function to extract cars from the page
     const extractCars = async () => {

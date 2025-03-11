@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Scrapper from "@/lib/Scrapper";
+import { ProtocolError } from "puppeteer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,7 +8,7 @@ export async function POST(req: NextRequest) {
 
     if (!query) {
       return NextResponse.json(
-        { error: "Query parameter is required" },
+        { error: "لطفا آدرس را وارد کنید" },
         { status: 400 }
       );
     }
@@ -17,9 +18,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ cars });
   } catch (error) {
-    console.error(error);
     return NextResponse.json(
-      { error: "Failed to scrape data" },
+      {
+        error:
+          error instanceof ProtocolError
+            ? "پروتکل معتبر نمی‌باشد"
+            : "خطا در انجام عملیات",
+      },
       { status: 500 }
     );
   }
