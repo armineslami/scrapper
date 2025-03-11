@@ -1,7 +1,6 @@
-import axios from "axios";
 import * as cheerio from "cheerio";
 import Car from "@/interface/Car";
-import ScrapeType from "@/interface/ScrapeType";
+import puppeteer from "puppeteer";
 
 class Scrapper {
   page: cheerio.CheerioAPI | undefined;
@@ -10,119 +9,78 @@ class Scrapper {
     this.page = undefined;
   }
 
-  async load(url: string): Promise<boolean> {
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-          "Cache-Control": "max-age=0",
-          Referer: url, // This mimics the referer header that browsers send
-        },
-        responseEncoding: "utf8",
-      });
+  async scrapeDivar(url: string, scrollTimes: number = 5): Promise<Car[]> {
+    const browser = await puppeteer.launch({ headless: false }); // Set to true for no UI
+    const page = await browser.newPage();
 
-      if (response.status !== 200) {
-        console.error("Error: Failed to fetch the page", response.status);
-        return false;
-      }
+    await page.goto(url, { waitUntil: "networkidle2" });
 
-      const $ = cheerio.load(response.data);
-      // console.log("Loaded HTML:", response.data); // Debugging
-
-      this.page = $;
-
-      return true;
-    } catch (error) {
-      console.error("Error:", error);
-      return false;
-    }
-  }
-
-  start(type: ScrapeType): Car[] | null {
-    if (!this.page) {
-      return null;
-    }
-
-    switch (type) {
-      case ScrapeType.Divar:
-        return this.scrapDivar(this.page);
-    }
-  }
-
-  scrapDivar(page: cheerio.CheerioAPI): Car[] | null {
-    // Find the div with id 'post-list-container-id'
-    const postListDivs = page("#post-list-container-id");
-    if (postListDivs.length === 0) {
-      console.log("No elements found with id 'post-list-container-id'");
-      return null;
-    }
-
-    // Find all <article> elements inside the found div
-    const articles = postListDivs.find("article");
-    if (articles.length === 0) {
-      console.log(
-        "No <article> elements found inside 'post-list-container-id'"
-      );
-      return null;
-    }
-
-    // Array to store the extracted data
     const extractedData: Car[] = [];
 
-    // Iterate over each article and extract the required information
-    articles.each((i, article) => {
-      const articleElement = page(article);
+    // Function to extract cars from the page
+    const extractCars = async () => {
+      const html = await page.content();
+      const $ = cheerio.load(html);
 
-      console.log(`Processing article #${i + 1}:`, articleElement.html());
+      $("#post-list-container-id article").each((i, article) => {
+        const articleElement = $(article);
 
-      const titleElement =
-        articleElement.find(".kt-post-card__title") ||
-        articleElement.find(".unsafe-kt-post-card__title");
-      const milageElement =
-        articleElement.find(".kt-post-card__description").first() ||
-        articleElement.find(".unsafe-kt-post-card__description").first();
-      const priceElement =
-        articleElement.find(".kt-post-card__description").eq(1) ||
-        articleElement.find(".unsafe-kt-post-card__description").eq(1);
-      const imgElement =
-        articleElement.find(".kt-post-card-thumbnail img") ||
-        articleElement.find(".unsafe-kt-post-card-thumbnail img");
+        const titleElement =
+          articleElement.find(".kt-post-card__title") ||
+          articleElement.find(".unsafe-kt-post-card__title");
+        const milageElement =
+          articleElement.find(".kt-post-card__description").first() ||
+          articleElement.find(".unsafe-kt-post-card__description").first();
+        const priceElement =
+          articleElement.find(".kt-post-card__description").eq(1) ||
+          articleElement.find(".unsafe-kt-post-card__description").eq(1);
+        const imgElement =
+          articleElement.find(".kt-post-card-thumbnail img") ||
+          articleElement.find(".unsafe-kt-post-card-thumbnail img");
 
-      if (titleElement.length === 0)
-        console.log(`Title not found in article #${i + 1}`);
-      if (milageElement.length === 0)
-        console.log(`Milage not found in article #${i + 1}`);
-      if (priceElement.length === 0)
-        console.log(`Price not found in article #${i + 1}`);
-      if (imgElement.length === 0)
-        console.log(`Image not found in article #${i + 1}`);
+        const title = titleElement.text().trim();
+        const milage = milageElement.text().trim();
+        const price = priceElement.text().trim();
+        const img = imgElement.attr("data-src") || imgElement.attr("src") || "";
 
-      const title = titleElement.text().trim();
-      const milage = milageElement.text().trim();
-      const price = priceElement.text().trim();
-      const img = imgElement.attr("data-src") || imgElement.attr("src") || "";
+        if (title && !extractedData.find((car) => car.title === title)) {
+          extractedData.push({ title, milage, price, img });
+        }
+      });
+    };
 
-      console.log(
-        `Title: ${title}, Mileage: ${milage}, Price: ${price}, Img: ${img}`
+    // **Step 1: Scrape initial content**
+    await extractCars();
+
+    // **Step 2: Scroll and load more, handling the button**
+    for (let i = 0; i < scrollTimes; i++) {
+      // Scroll to the bottom of the page
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      // Wait for content to load
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Check if the "Load More" button is visible and click it if present
+      const loadMoreButton = await page.$(
+        ".post-list__load-more-btn-container-cef96 button"
       );
 
-      if (title) {
-        extractedData.push({ title, milage, price, img });
+      if (loadMoreButton) {
+        console.log("Clicking 'Load More' button...");
+        await loadMoreButton.click();
+        // Wait for the new content to load after the button click
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Adjust the time as needed
       }
-    });
 
-    if (extractedData.length === 0) {
-      console.log("No data extracted from articles");
-      return null;
+      // Extract the new cars after loading more data
+      await extractCars();
     }
 
-    return extractedData; // Return the array of objects
+    await browser.close();
+    console.log("allExtractedData =====>", extractedData);
+    return extractedData;
   }
 }
 

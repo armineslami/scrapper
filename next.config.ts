@@ -5,11 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**.divarcdn.com", // Use `**.` for subdomains
-      },
-      {
-        protocol: "https",
-        hostname: "s100.divarcdn.com", // Add specific subdomain
+        hostname: "**.divarcdn.com",
       },
     ],
   },
