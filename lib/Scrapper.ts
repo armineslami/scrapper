@@ -4,13 +4,14 @@ import puppeteer, { ProtocolError } from "puppeteer";
 
 class Scrapper {
   page: cheerio.CheerioAPI | undefined;
+  headless: boolean = true;
 
   constructor() {
     this.page = undefined;
   }
 
   async scrapeDivar(url: string, scrollTimes: number = 5): Promise<Car[]> {
-    const browser = await puppeteer.launch({ headless: false }); // Set to true for no UI
+    const browser = await puppeteer.launch({ headless: this.headless });
     const page = await browser.newPage();
     const extractedData: Car[] = [];
 

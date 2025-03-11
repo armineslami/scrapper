@@ -13,6 +13,7 @@ const Home: React.FC<HomeProps> = () => {
   const [error, setError] = useState("");
 
   const handleSearch = async (query: string) => {
+    setCars([]);
     setLoading(true);
     setError("");
 

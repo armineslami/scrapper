@@ -9,12 +9,12 @@ export async function POST(req: NextRequest) {
     if (!query) {
       return NextResponse.json(
         { error: "لطفا آدرس را وارد کنید" },
-        { status: 400 }
+        { status: 422 }
       );
     }
 
     const scrapper = new Scrapper();
-    const cars = await scrapper.scrapeDivar(query, 1);
+    const cars = await scrapper.scrapeDivar(query, 20);
 
     return NextResponse.json({ cars });
   } catch (error) {
