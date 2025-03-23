@@ -1,4 +1,4 @@
-interface Car {
+interface DivarAdvertise {
   id?: string;
   title?: string;
   milage?: string;
@@ -9,4 +9,4 @@ interface Car {
   details?: { title?: string; value?: string }[];
 }
 
-export default Car;
+export default DivarAdvertise;

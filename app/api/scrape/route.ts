@@ -16,9 +16,13 @@ export async function POST(req: NextRequest) {
     const scrapper = new Scrapper(
       process.env.HEADLESS_SCRAPPER === "false" ? false : true
     );
-    const cars = await scrapper.scrapeDivar(query, numberOfScrolls, openLinks);
+    const advertises = await scrapper.scrapeDivar(
+      query,
+      numberOfScrolls,
+      openLinks
+    );
 
-    return NextResponse.json({ cars });
+    return NextResponse.json({ advertises });
   } catch (error) {
     return NextResponse.json(
       {

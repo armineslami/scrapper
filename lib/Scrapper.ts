@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import Car from "@/interface/Car";
+import DivarAdvertise from "@/interface/DivarAdvertise";
 import puppeteer, { ProtocolError } from "puppeteer";
 
 class Scrapper {
@@ -13,10 +13,10 @@ class Scrapper {
     url: string,
     scrollTimes: number = 0,
     openLinks: boolean = true
-  ): Promise<Car[]> {
+  ): Promise<DivarAdvertise[]> {
     const browser = await puppeteer.launch({ headless: this.headless });
     const page = await browser.newPage();
-    const extractedData: Car[] = [];
+    const extractedData: DivarAdvertise[] = [];
 
     try {
       await page.goto(url, { waitUntil: "networkidle2" });
@@ -29,19 +29,18 @@ class Scrapper {
       return extractedData;
     }
 
-    // Function to extract cars from the listing page
-    const extractCars = async () => {
+    const extractAdvertises = async () => {
       const html = await page.content();
       const $ = cheerio.load(html);
       const articles = $("#post-list-container-id article").toArray();
 
-      let car: Car = {};
+      let advertise: DivarAdvertise = {};
 
       // Loop through articles using their index
       for (let i = 0; i < articles.length; i++) {
         // articles.length
         // reset;
-        car = {
+        advertise = {
           id: crypto.randomUUID(),
           details: [],
         };
@@ -64,10 +63,10 @@ class Scrapper {
           articleElement.find(".kt-post-card-thumbnail img").first() ||
           articleElement.find(".unsafe-kt-post-card-thumbnail img").first();
 
-        car.title = titleElement.text().trim();
-        car.milage = milageElement.text().trim();
-        car.price = priceElement.text().trim();
-        car.thumbnail =
+        advertise.title = titleElement.text().trim();
+        advertise.milage = milageElement.text().trim();
+        advertise.price = priceElement.text().trim();
+        advertise.thumbnail =
           thumbnailElement.attr("data-src") ||
           thumbnailElement.attr("src") ||
           "";
@@ -132,7 +131,7 @@ class Scrapper {
 
             if (headers.length === rows.length) {
               for (let i = 0; i < headers.length; i++) {
-                car.details?.push({ title: headers[i], value: rows[i] });
+                advertise.details?.push({ title: headers[i], value: rows[i] });
               }
             }
 
@@ -149,7 +148,7 @@ class Scrapper {
               const value = rowElement.children().eq(1).text().trim();
 
               if (title && value) {
-                car.details?.push({
+                advertise.details?.push({
                   title: title,
                   value: value,
                 });
@@ -157,12 +156,12 @@ class Scrapper {
             }
 
             // Extracting the description
-            car.description = descriptionSection
+            advertise.description = descriptionSection
               .children()
               .find(".kt-description-row__text")
               .text();
 
-            car.image = imagesSection
+            advertise.image = imagesSection
               .first()
               .find(".keen-slider img")
               ?.attr("src");
@@ -184,7 +183,7 @@ class Scrapper {
 
             if (headers.length === rows.length) {
               for (let i = 0; i < headers.length; i++) {
-                car.details?.push({ title: "امکانات", value: rows[i] });
+                advertise.details?.push({ title: "امکانات", value: rows[i] });
               }
             }
 
@@ -199,21 +198,21 @@ class Scrapper {
 
         // Avoid duplicates
         if (
-          car.title &&
+          advertise.title &&
           !extractedData.find(
             (c) =>
-              c.title === car.title &&
-              c.price === car.price &&
-              c.thumbnail === car.thumbnail
+              c.title === advertise.title &&
+              c.price === advertise.price &&
+              c.thumbnail === advertise.thumbnail
           )
         ) {
-          extractedData.push(car);
+          extractedData.push(advertise);
         }
       }
     };
 
     // **Step 1: Scrape initial content**
-    await extractCars();
+    await extractAdvertises();
 
     // **Step 2: Scroll and load more content**
     for (let i = 0; i < scrollTimes; i++) {
@@ -233,7 +232,7 @@ class Scrapper {
           });
       }
 
-      await extractCars();
+      await extractAdvertises();
     }
 
     await browser.close();

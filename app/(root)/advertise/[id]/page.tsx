@@ -3,40 +3,42 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Car from "@/interface/Car";
+import DivarAdvertise from "@/interface/DivarAdvertise";
 import { Camera } from "lucide-react";
 
 const Page = () => {
   const params = useParams();
   const id = params.id as string | undefined;
 
-  const [car, setCar] = useState<Car | null>(null);
+  const [divarAdvertise, setDivarAdvertise] = useState<DivarAdvertise | null>(
+    null
+  );
 
   useEffect(() => {
     if (!id) return;
 
-    // Load cars from storage
-    const stringCars = localStorage.getItem("cars");
-    if (!stringCars) return;
+    // Load advertises from storage
+    const stringDivarAdvertise = localStorage.getItem("advertises");
+    if (!stringDivarAdvertise) return;
 
-    const cars: Car[] = JSON.parse(stringCars);
-    const foundCar = cars.find((car) => car.id == id);
+    const advertises: DivarAdvertise[] = JSON.parse(stringDivarAdvertise);
+    const foundAdvertise = advertises.find((advertise) => advertise.id == id);
 
-    if (foundCar) {
-      setCar(foundCar);
+    if (foundAdvertise) {
+      setDivarAdvertise(foundAdvertise);
     }
   }, [id]);
 
-  if (!car) return <p>Car not found</p>;
+  if (!divarAdvertise) return <p>آگهی یافت نشد</p>;
 
   return (
     <div className="grid grid-cols-12 py-4">
       <div className="col-span-6 px-8">
-        <p className="font-bold text-2xl">{car.title}</p>
+        <p className="font-bold text-2xl">{divarAdvertise.title}</p>
         <hr className="border border-gray-300 dark:border-gray-600 mt-4" />
         <div className="my-16">
-          {car.details &&
-            car.details.map((detail, i) => {
+          {divarAdvertise.details &&
+            divarAdvertise.details.map((detail, i) => {
               return (
                 <div key={i}>
                   <div className="flex flex-row justify-between p-2">
@@ -45,26 +47,26 @@ const Page = () => {
                     </p>
                     <p className="text-md font-bold">{detail.value}</p>
                   </div>
-                  {i < car.details!.length - 1 && (
+                  {i < divarAdvertise.details!.length - 1 && (
                     <hr className="border border-gray-300 dark:border-gray-600" />
                   )}
                 </div>
               );
             })}
         </div>
-        <p>{car.description}</p>
+        <p>{divarAdvertise.description}</p>
       </div>
       <div className="col-span-6 flex justify-end max-h-[400px]">
-        {car.image ? (
+        {divarAdvertise.image ? (
           <div className="relative w-full max-w-full aspect-w-4 aspect-h-3">
             <img
-              src={car.image}
+              src={divarAdvertise.image}
               className="rounded-lg object-cover w-full h-full"
               alt=""
             />
           </div>
         ) : (
-          <div className="w-full h-full ms-4 bg-gray-300 flex items-center rounded-lg justify-center text-gray-500">
+          <div className="min-h-[400px] w-full h-full ms-4 bg-gray-300 flex items-center rounded-lg justify-center text-gray-500">
             <Camera size={34} />
           </div>
         )}
