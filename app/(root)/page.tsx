@@ -6,6 +6,11 @@ import HomeProps from "@/interface/props/HomeProps";
 import React, { useEffect, useState } from "react";
 import AdvertiseCard from "./components/AdvertiseCard";
 import { useRouter } from "next/navigation";
+import {
+  readFromDatabase,
+  storeToDatabase,
+  truncateDatabase,
+} from "@/lib/utils";
 
 const Home: React.FC<HomeProps> = () => {
   const router = useRouter();
@@ -21,7 +26,7 @@ const Home: React.FC<HomeProps> = () => {
     setDivarAdvertises([]);
     setLoading(true);
     setError("");
-    localStorage.removeItem("advertises");
+    truncateDatabase();
 
     try {
       const response = await fetch("/api/scrape", {
@@ -36,7 +41,7 @@ const Home: React.FC<HomeProps> = () => {
       }
 
       setDivarAdvertises(data.advertises);
-      localStorage.setItem("advertises", JSON.stringify(data.advertises));
+      storeToDatabase(JSON.stringify(data.advertises));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -52,14 +57,14 @@ const Home: React.FC<HomeProps> = () => {
   };
 
   const reset = () => {
-    localStorage.removeItem("advertises");
+    truncateDatabase();
     setDivarAdvertises([]);
   };
 
   useEffect(() => {
-    const advertises = localStorage.getItem("advertises");
+    const advertises = readFromDatabase();
     if (advertises) {
-      setDivarAdvertises(JSON.parse(advertises));
+      setDivarAdvertises(advertises);
     }
   }, []);
 

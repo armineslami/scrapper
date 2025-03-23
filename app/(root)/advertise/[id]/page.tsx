@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import DivarAdvertise from "@/interface/DivarAdvertise";
 import { Camera } from "lucide-react";
+import { readFromDatabase } from "@/lib/utils";
 
 const Page = () => {
   const params = useParams();
@@ -18,10 +19,10 @@ const Page = () => {
     if (!id) return;
 
     // Load advertises from storage
-    const stringDivarAdvertise = localStorage.getItem("advertises");
-    if (!stringDivarAdvertise) return;
+    const databaseAdvertises = readFromDatabase();
+    if (!databaseAdvertises) return;
 
-    const advertises: DivarAdvertise[] = JSON.parse(stringDivarAdvertise);
+    const advertises: DivarAdvertise[] = databaseAdvertises;
     const foundAdvertise = advertises.find((advertise) => advertise.id == id);
 
     if (foundAdvertise) {
