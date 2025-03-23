@@ -4,7 +4,7 @@ import puppeteer, { ProtocolError } from "puppeteer";
 
 class Scrapper {
   page: cheerio.CheerioAPI | undefined;
-  headless: boolean = true;
+  headless: boolean = process.env.HEADLESS_SCRAPPER || true;
 
   constructor() {
     this.page = undefined;
