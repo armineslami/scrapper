@@ -6,11 +6,17 @@ import React from "react";
 const CarCard: React.FC<CarCardProps> = ({ car }) => {
   return (
     <div className="grid grid-cols-12 border border-gray-400 rounded-md ">
-      <div className="col-span-5 lg:col-span-3">
+      <div className="col-span-5 lg:col-span-3 flex justify-center items-center">
         {car.img ? (
-          <Image src={car.img} alt={car.title} width={200} height={200} />
+          <Image
+            src={car.img}
+            alt={car.title}
+            width={200}
+            height={200}
+            className="ms-4"
+          />
         ) : (
-          <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500">
+          <div className="w-24 h-24 ms-4 bg-gray-300 flex items-center justify-center text-gray-500">
             <Camera size={34} />
           </div>
         )}

@@ -7,12 +7,11 @@ import React, { useState } from "react";
 import CarCard from "./components/DataCard";
 
 const Home: React.FC<HomeProps> = () => {
-  const [query, setQuery] = useState("");
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, numberOfScrolls: number) => {
     setCars([]);
     setLoading(true);
     setError("");
@@ -21,7 +20,7 @@ const Home: React.FC<HomeProps> = () => {
       const response = await fetch("/api/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, numberOfScrolls }),
       });
 
       const data = await response.json();
@@ -38,15 +37,21 @@ const Home: React.FC<HomeProps> = () => {
   };
 
   return (
-    <main className="p-8">
+    <main className="p-2 lg:p-8">
       <div className="flex flex-col items-center mt-8">
         <SearchForm
-          onQueryChange={setQuery}
-          onSearch={() => handleSearch(query)}
+          onSearch={(query: string, numberOfScrolls: number) =>
+            handleSearch(query, numberOfScrolls)
+          }
         />
 
         {loading && (
-          <p className="mt-16 text-lg font-bold">در حال دریافت اطلاعات ...</p>
+          <div className="space-y-8 mt-16">
+            <div className="flex justify-center">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-400 rounded-full animate-spin"></div>
+            </div>
+            <p className="text-sm">در حال دریافت اطلاعات ...</p>
+          </div>
         )}
 
         {error && (

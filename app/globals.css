@@ -30,7 +30,7 @@ body {
   }
 
   .search-form-input {
-    @apply w-full h-8 bg-transparent focus:outline-none focus:ring-0
+    @apply w-full h-8 text-sm bg-transparent focus:outline-none focus:ring-0
   }
 
   .input {

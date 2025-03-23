@@ -1,6 +1,6 @@
 interface SearchFormProps {
-  onSearch: () => void;
-  onQueryChange: (query: string) => void;
+  onSearch: (query: string, numberOfScrolls: number) => void;
+  // onQueryChange: (query: string, numberOfScrolls: string) => void;
 }
 
 export default SearchFormProps;
