@@ -13,10 +13,10 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
             alt={car.title}
             width={200}
             height={200}
-            className="ms-4"
+            className="ms-4 rounded-sm"
           />
         ) : (
-          <div className="w-24 h-24 ms-4 bg-gray-300 flex items-center justify-center text-gray-500">
+          <div className="w-24 h-24 ms-4 bg-gray-300 flex items-center rounded-sm justify-center text-gray-500">
             <Camera size={34} />
           </div>
         )}
