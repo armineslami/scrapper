@@ -1,5 +1,5 @@
 declare namespace NodeJS {
   export interface ProcessEnv {
-    HEADLESS_SCRAPPER: boolean;
+    HEADLESS_SCRAPPER: string;
   }
 }

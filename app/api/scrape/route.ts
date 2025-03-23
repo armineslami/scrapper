@@ -4,7 +4,7 @@ import { ProtocolError } from "puppeteer";
 
 export async function POST(req: NextRequest) {
   try {
-    const { query, numberOfScrolls } = await req.json();
+    const { query, numberOfScrolls, openLinks } = await req.json();
 
     if (!query) {
       return NextResponse.json(
@@ -13,8 +13,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const scrapper = new Scrapper();
-    const cars = await scrapper.scrapeDivar(query, numberOfScrolls);
+    const scrapper = new Scrapper(
+      process.env.HEADLESS_SCRAPPER === "false" ? false : true
+    );
+    const cars = await scrapper.scrapeDivar(query, numberOfScrolls, openLinks);
 
     return NextResponse.json({ cars });
   } catch (error) {
