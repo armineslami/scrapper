@@ -28,7 +28,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         <div className="w-full grid grid-cols-12 gap-2">
           <div className="col-span-12 lg:col-span-8">
             <p className="text-sm">لینک دیوار</p>
-            <div className="search-form-input-container ">
+            <div className="form-input-container ">
               <input
                 name="query"
                 ref={queryRef}
@@ -58,7 +58,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           <div className="col-span-12 lg:col-span-4 grid grid-cols-12 gap-2">
             <div className="col-span-6">
               <p className="text-sm">تعداد اسکرول</p>
-              <div className="search-form-input-container">
+              <div className="form-input-container">
                 <input
                   name="numberOfScrolls"
                   ref={scrollRef}
@@ -70,7 +70,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
             </div>
             <div className="col-span-6">
               <p className="text-sm">دریافت جزئیات</p>
-              <div className="search-form-input-container ">
+              <div className="form-input-container">
                 <select ref={openLinksRef} className="search-form-input h-full">
                   <option value={1}>بله</option>
                   <option value={0}>خیر</option>
