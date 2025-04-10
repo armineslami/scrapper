@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Scrapper from "@/lib/Scrapper";
 import { ProtocolError } from "puppeteer";
-import DivarAdvertise from "@/interface/DivarAdvertise";
+import DivarScrapResult from "@/interface/DivarScrapResult";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,16 +18,20 @@ export async function POST(req: NextRequest) {
       process.env.HEADLESS_SCRAPPER === "false" ? false : true
     );
 
-    const result: Record<string, DivarAdvertise[]>[] = [];
-
-    for (const query of queries) {
-      const advertises = await scrapper.scrapeDivar(
-        query,
-        numberOfScrolls,
-        openLinks
-      );
-      result.push({ query, advertises });
-    }
+    const result: DivarScrapResult[] = await Promise.all(
+      queries.map(async (query: string) => {
+        try {
+          const advertises = await scrapper.scrapeDivar(
+            query,
+            numberOfScrolls,
+            openLinks
+          );
+          return { query, advertises };
+        } catch {
+          return { query, advertises: [], error: true };
+        }
+      })
+    );
 
     return NextResponse.json({ result });
   } catch (error) {
