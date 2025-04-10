@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import AdvertiseCard from "./components/AdvertiseCard";
 import { useRouter } from "next/navigation";
 import {
+  devLog,
   readFromDatabase,
   storeToDatabase,
   truncateDatabase,
@@ -39,6 +40,7 @@ const Home: React.FC<HomeProps> = () => {
       });
 
       const data = await response.json();
+      devLog("Scrapping result", data);
 
       if (!response.ok) {
         throw new Error(data.error || "خطای نامشخص رخ داده است");
