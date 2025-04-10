@@ -2,7 +2,7 @@ import DivarAdvertise from "../DivarAdvertise";
 
 interface AdvertiseCardProps {
   divarAdvertise: DivarAdvertise;
-  onClick: (id: string) => void;
+  onClick: (divarAdvertise: DivarAdvertise) => void;
 }
 
 export default AdvertiseCardProps;

@@ -1,6 +1,6 @@
 interface SearchFormProps {
   onSearch: (
-    query: string,
+    queries: string[],
     numberOfScrolls: number,
     fetchDetails: boolean
   ) => void;

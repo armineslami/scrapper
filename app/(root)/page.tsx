@@ -1,7 +1,6 @@
 "use client";
 
 import SearchForm from "@/app/(root)/components/SearchForm";
-import DivarAdvertise from "@/interface/DivarAdvertise";
 import HomeProps from "@/interface/props/HomeProps";
 import React, { useEffect, useState } from "react";
 import AdvertiseCard from "./components/AdvertiseCard";
@@ -11,15 +10,19 @@ import {
   storeToDatabase,
   truncateDatabase,
 } from "@/lib/utils";
+import DivarScrapResult from "@/interface/DivarScrapResult";
+import DivarAdvertise from "@/interface/DivarAdvertise";
 
 const Home: React.FC<HomeProps> = () => {
   const router = useRouter();
-  const [divarAdvertises, setDivarAdvertises] = useState<DivarAdvertise[]>([]);
+  const [divarAdvertises, setDivarAdvertises] = useState<DivarScrapResult[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSearch = async (
-    query: string,
+    queries: string[],
     numberOfScrolls: number,
     openLinks: boolean
   ) => {
@@ -32,16 +35,17 @@ const Home: React.FC<HomeProps> = () => {
       const response = await fetch("/api/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, numberOfScrolls, openLinks }),
+        body: JSON.stringify({ queries, numberOfScrolls, openLinks }),
       });
 
       const data = await response.json();
+
       if (!response.ok) {
         throw new Error(data.error || "خطای نامشخص رخ داده است");
       }
 
-      setDivarAdvertises(data.advertises);
-      storeToDatabase(JSON.stringify(data.advertises));
+      setDivarAdvertises(data.result);
+      storeToDatabase(JSON.stringify(data.result));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -49,10 +53,10 @@ const Home: React.FC<HomeProps> = () => {
     }
   };
 
-  const onCardClick = (id: string) => {
-    const advertise = divarAdvertises.find((advertise) => (advertise.id = id));
-    if (advertise) {
-      router.push(`/advertise/${id}`);
+  const onCardClick = (divarAdvertise: DivarAdvertise) => {
+    console.log("onCardClick", divarAdvertise);
+    if (divarAdvertise) {
+      router.push(`/advertise/${divarAdvertise.id}`);
     }
   };
 
@@ -73,10 +77,10 @@ const Home: React.FC<HomeProps> = () => {
       <div className="flex flex-col items-center mt-8">
         <SearchForm
           onSearch={(
-            query: string,
+            queries: string[],
             numberOfScrolls: number,
             openLinks: boolean
-          ) => handleSearch(query, numberOfScrolls, openLinks)}
+          ) => handleSearch(queries, numberOfScrolls, openLinks)}
         />
 
         {loading && (
@@ -117,17 +121,24 @@ const Home: React.FC<HomeProps> = () => {
                 </button>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 5xl:grid-cols-2 gap-4 ">
-              {divarAdvertises.map((advertise, index) => {
-                return (
-                  <AdvertiseCard
-                    key={index}
-                    divarAdvertise={advertise}
-                    onClick={onCardClick}
-                  />
-                );
-              })}
-            </div>
+
+            {divarAdvertises.map((advertise, index) => {
+              return (
+                <div key={index} className="my-8">
+                  <p className="my-4">{advertise.query}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 5xl:grid-cols-2 gap-4">
+                    {advertise.advertises.map((ad, adIndex) => (
+                      <div key={adIndex}>
+                        <AdvertiseCard
+                          divarAdvertise={ad}
+                          onClick={onCardClick}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

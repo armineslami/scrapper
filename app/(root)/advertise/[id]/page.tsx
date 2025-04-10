@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import DivarAdvertise from "@/interface/DivarAdvertise";
 import { Camera } from "lucide-react";
 import { readFromDatabase } from "@/lib/utils";
+import DivarScrapResult from "@/interface/DivarScrapResult";
 
 const Page = () => {
   const params = useParams();
@@ -22,12 +23,14 @@ const Page = () => {
     const databaseAdvertises = readFromDatabase();
     if (!databaseAdvertises) return;
 
-    const advertises: DivarAdvertise[] = databaseAdvertises;
-    const foundAdvertise = advertises.find((advertise) => advertise.id == id);
-
-    if (foundAdvertise) {
-      setDivarAdvertise(foundAdvertise);
-    }
+    const advertises: DivarScrapResult[] = databaseAdvertises;
+    advertises.map((divarScrapResult) => {
+      divarScrapResult.advertises.find((advertise) => {
+        if (advertise.id == id) {
+          setDivarAdvertise(advertise);
+        }
+      });
+    });
   }, [id]);
 
   if (!divarAdvertise) return <p>آگهی یافت نشد</p>;

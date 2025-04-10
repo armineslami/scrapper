@@ -9,12 +9,12 @@ const AdvertiseCard: React.FC<AdvertiseCardProps> = ({
 }) => {
   return (
     <div
-      className="grid grid-cols-12 border border-gray-400 rounded-md cursor-pointer hover:shadow-xl hover:border-2"
+      className="grid grid-cols-12 h-full border border-gray-400 rounded-md cursor-pointer hover:shadow-xl hover:border-2"
       onClick={() =>
         divarAdvertise.id &&
         (divarAdvertise.description ||
           (divarAdvertise.details && divarAdvertise.details.length > 0)) &&
-        onClick(divarAdvertise.id)
+        onClick(divarAdvertise)
       }
     >
       <div className="col-span-5 lg:col-span-3 flex justify-center items-center">
