@@ -1,8 +1,8 @@
 interface DivarAdvertise {
   id?: string;
   title?: string;
-  milage?: string;
-  price?: string;
+  attributeOne?: string;
+  attributeTwo?: string;
   image?: string;
   thumbnail?: string;
   description?: string;

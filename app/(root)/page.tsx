@@ -6,9 +6,11 @@ import React, { useEffect, useState } from "react";
 import AdvertiseCard from "./components/AdvertiseCard";
 import { useRouter } from "next/navigation";
 import {
+  analyzePrices,
   devLog,
   readFromDatabase,
   storeToDatabase,
+  toPersianNumber,
   truncateDatabase,
 } from "@/lib/utils";
 import DivarScrapResult from "@/interface/DivarScrapResult";
@@ -56,7 +58,6 @@ const Home: React.FC<HomeProps> = () => {
   };
 
   const onCardClick = (divarAdvertise: DivarAdvertise) => {
-    console.log("onCardClick", divarAdvertise);
     if (divarAdvertise) {
       router.push(`/advertise/${divarAdvertise.id}`);
     }
@@ -125,9 +126,34 @@ const Home: React.FC<HomeProps> = () => {
             )}
 
             {divarAdvertises.map((advertise, index) => {
+              const { min, max, average } = analyzePrices(advertise.advertises); // ✅ Only once
+
               return (
                 <div key={index} className="my-8">
-                  <p className="my-4">{advertise.query}</p>
+                  <a
+                    href={advertise.query}
+                    className="my-4 font-bold text-lg underline"
+                  >
+                    {advertise.query}
+                  </a>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 my-8">
+                    <span>
+                      حداقل:{" "}
+                      {min ? `${toPersianNumber(min.toString())} تومان` : "-"}
+                    </span>
+                    <span>
+                      حداکثر:{" "}
+                      {max ? `${toPersianNumber(max.toString())} تومان` : "-"}
+                    </span>
+                    <span>
+                      میانگین:{" "}
+                      {average
+                        ? `${toPersianNumber(average.toString())} تومان`
+                        : "-"}
+                    </span>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 5xl:grid-cols-2 gap-4">
                     {advertise.advertises.map((ad, adIndex) => (
                       <div key={adIndex}>

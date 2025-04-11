@@ -1,7 +1,6 @@
 import * as cheerio from "cheerio";
 import DivarAdvertise from "@/interface/DivarAdvertise";
 import puppeteer, { ProtocolError } from "puppeteer";
-import { asyncPool } from "./utils";
 
 class Scrapper {
   headless: boolean;
@@ -30,7 +29,6 @@ class Scrapper {
       return extractedData;
     }
 
-    // Function to scrape detail pages with concurrency
     const extractAdvertises = async () => {
       const html = await page.content();
       const $ = cheerio.load(html);
@@ -40,11 +38,14 @@ class Scrapper {
 
       // Loop through articles using their index
       for (let i = 0; i < articles.length; i++) {
+        // articles.length
+        // reset;
         advertise = {
           id: crypto.randomUUID(),
           details: [],
         };
 
+        //articles.length
         const article = articles[i];
         const articleElement = $(article);
 
@@ -77,113 +78,122 @@ class Scrapper {
 
         if (linkUrl && openLinks) {
           const fullUrl = new URL(linkUrl, new URL(page.url()).origin).href;
+          try {
+            const detailPage = await browser.newPage();
+            await detailPage.goto(fullUrl, { waitUntil: "networkidle2" });
 
-          // Scrape detail pages concurrently with asyncPool
-          const detailPageScrape = async () => {
-            try {
-              const detailPage = await browser.newPage();
-              await detailPage.goto(fullUrl, { waitUntil: "networkidle2" });
-
-              await detailPage
-                .waitForSelector("article", { timeout: 10000 })
-                .catch(() => {
-                  console.warn("Detail data not loaded within timeout.");
-                });
-
-              const html = await detailPage.content();
-              const $ = cheerio.load(html);
-
-              const details = $("article div");
-              const detailsSection = details
-                .first()
-                .find("section")
-                .eq(0)
-                .children()
-                .last();
-              const descriptionSection = details.first().find("section").eq(1);
-              const imagesSection = details.eq(0).children().eq(1);
-
-              const table = detailsSection.find("table").first();
-              let headers: string[] = [];
-              table.find("thead th").each((i, element) => {
-                headers.push($(element).text().trim());
+            // Wait for and extract the desired detail data:
+            await detailPage
+              .waitForSelector("article", {
+                timeout: 10000,
+              })
+              .catch(() => {
+                console.warn("Detail data not loaded within timeout.");
               });
 
-              let rows: string[] = [];
-              table.find("tbody td").each((i, element) => {
-                rows.push($(element).text().trim());
-              });
+            const html = await detailPage.content();
+            const $ = cheerio.load(html);
 
-              if (headers.length === rows.length) {
-                for (let i = 0; i < headers.length; i++) {
-                  advertise.details?.push({
-                    title: headers[i],
-                    value: rows[i],
-                  });
-                }
+            // Details container
+            const details = $("article div");
+
+            // Details section
+            const detailsSection = details
+              .first()
+              .find("section")
+              .eq(0)
+              .children()
+              .last();
+
+            // Description section
+            const descriptionSection = details
+              .first() // first div
+              .find("section")
+              .eq(1); // second section
+
+            // Image section
+            const imagesSection = details.eq(0).children().eq(1);
+
+            // Extracting the top details
+            const table = detailsSection.find("table").first();
+
+            // Get the data from the `thead` (headers)
+            let headers: string[] = [];
+            table.find("thead th").each((i, element) => {
+              headers.push($(element).text().trim());
+            });
+
+            // Get the data from the `tbody` (rows)
+            let rows: string[] = [];
+            table.find("tbody td").each((i, element) => {
+              rows.push($(element).text().trim());
+            });
+
+            if (headers.length === rows.length) {
+              for (let i = 0; i < headers.length; i++) {
+                advertise.details?.push({ title: headers[i], value: rows[i] });
               }
-
-              const detailsSectionRows = detailsSection
-                .find(".kt-base-row")
-                .toArray();
-
-              for (let i = 0; i < detailsSectionRows.length; i++) {
-                const row = detailsSectionRows[i];
-                const rowElement = $(row);
-                const title = rowElement.children().first().text().trim();
-                const value = rowElement.children().eq(1).text().trim();
-
-                if (title && value) {
-                  advertise.details?.push({
-                    title: title,
-                    value: value,
-                  });
-                }
-              }
-
-              advertise.description = descriptionSection
-                .children()
-                .find(".kt-description-row__text")
-                .text();
-
-              advertise.image = imagesSection
-                .first()
-                .find(".keen-slider img")
-                ?.attr("src");
-
-              const attributesTable = detailsSection.find("table").eq(1);
-
-              headers = [];
-              attributesTable.find("thead th").each((i, element) => {
-                headers.push($(element).text().trim());
-              });
-
-              rows = [];
-              attributesTable.find("tbody td").each((i, element) => {
-                rows.push($(element).text().trim());
-              });
-
-              if (headers.length === rows.length) {
-                for (let i = 0; i < headers.length; i++) {
-                  advertise.details?.push({ title: "امکانات", value: rows[i] });
-                }
-              }
-
-              await detailPage.close();
-            } catch (detailError) {
-              console.error(
-                `Error processing detail page for ${fullUrl}:`,
-                detailError
-              );
             }
-          };
 
-          // Queue up the detail page scrapes concurrently with asyncPool
-          await asyncPool(
-            Number(process.env.SCRAPPER_CONCURENCY) || 3, // Limit concurrent requests to 3 (or any number depending on your resources)
-            [fullUrl], // Queue up the full URL
-            detailPageScrape // Pass the scraping function for each URL
-          );
+            // Extrating the details
+            const detailsSectionRows = detailsSection
+              .find(".kt-base-row")
+              .toArray();
+
+            // const detailsObject: { title?: string; value?: string } = {};
+            for (let i = 0; i < detailsSectionRows.length; i++) {
+              const row = detailsSectionRows[i];
+              const rowElement = $(row);
+              const title = rowElement.children().first().text().trim();
+              const value = rowElement.children().eq(1).text().trim();
+
+              if (title && value) {
+                advertise.details?.push({
+                  title: title,
+                  value: value,
+                });
+              }
+            }
+
+            // Extracting the description
+            advertise.description = descriptionSection
+              .children()
+              .find(".kt-description-row__text")
+              .text();
+
+            advertise.image = imagesSection
+              .first()
+              .find(".keen-slider img")
+              ?.attr("src");
+
+            // The second table is attributes which exists for some advertises
+            const attributesTable = detailsSection.find("table").eq(1);
+
+            // Get the data from the `thead` (headers)
+            headers = [];
+            attributesTable.find("thead th").each((i, element) => {
+              headers.push($(element).text().trim());
+            });
+
+            // Get the data from the `tbody` (rows)
+            rows = [];
+            attributesTable.find("tbody td").each((i, element) => {
+              rows.push($(element).text().trim());
+            });
+
+            if (headers.length === rows.length) {
+              for (let i = 0; i < headers.length; i++) {
+                advertise.details?.push({ title: "امکانات", value: rows[i] });
+              }
+            }
+
+            await detailPage.close();
+          } catch (detailError) {
+            console.error(
+              `Error processing detail page for ${fullUrl}:`,
+              detailError
+            );
+          }
         }
 
         // Avoid duplicates

@@ -34,8 +34,8 @@ const AdvertiseCard: React.FC<AdvertiseCardProps> = ({
       </div>
       <div className="col-span-7 lg:col-span-9 p-8 space-y-2">
         <p className="text-lg font-bold truncate">{divarAdvertise.title}</p>
-        <p className="text-md">{divarAdvertise.milage}</p>
-        <p className="text-md">{divarAdvertise.price}</p>
+        <p className="text-md">{divarAdvertise.attributeOne}</p>
+        <p className="text-md">{divarAdvertise.attributeTwo}</p>
       </div>
     </div>
   );

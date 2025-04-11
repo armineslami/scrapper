@@ -39,8 +39,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   );
 
   const onSubmit = async (data: Record<string, string>) => {
-    console.log("data", data);
-
     const transformFormData: string[] = [];
     Object.entries(data).flatMap(([key, value]) => {
       if (key.startsWith("link_")) {
